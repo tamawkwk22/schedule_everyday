@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal Hidup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1ECDF;
+    --paper-2:#E8E1CF;
+    --ink:#242017;
+    --ink-soft:#6B6455;
+    --ink-faint:#9C947E;
+    --line: rgba(36,32,23,0.14);
+    --card:#FBF9F3;
+    --accent:#AD7A2C;
+    --accent-ink:#5C3F12;
+    --accent-soft: rgba(173,122,44,0.14);
+    --missed:#A94A3A;
+    --missed-soft: rgba(169,74,58,0.12);
+    --shadow: 0 1px 2px rgba(36,32,23,0.06), 0 6px 20px rgba(36,32,23,0.05);
+    --radius: 16px;
+
+    --cat-ibadah:#AD7A2C;
+    --cat-rutinitas:#8C8674;
+    --cat-refleksi:#5F7A5A;
+    --cat-olahraga:#3E8265;
+    --cat-sekolah:#3F6C96;
+    --cat-belajar:#6B5896;
+    --cat-istirahat:#B0A788;
+    --cat-hiburan:#AE5279;
+    --cat-tidur:#38406B;
+    --cat-keluarga:#BC6E33;
+    --cat-hobi:#93548F;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1912;
+      --paper-2:#211E16;
+      --ink:#EDE8DA;
+      --ink-soft:#A69C86;
+      --ink-faint:#726B5A;
+      --line: rgba(237,232,218,0.12);
+      --card:#252219;
+      --accent:#D9A857;
+      --accent-ink:#F1D8A6;
+      --accent-soft: rgba(217,168,87,0.14);
+      --missed:#E08975;
+      --missed-soft: rgba(224,137,117,0.14);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1912; --paper-2:#211E16; --ink:#EDE8DA; --ink-soft:#A69C86; --ink-faint:#726B5A;
+    --line: rgba(237,232,218,0.12); --card:#252219; --accent:#D9A857; --accent-ink:#F1D8A6;
+    --accent-soft: rgba(217,168,87,0.14); --missed:#E08975; --missed-soft: rgba(224,137,117,0.14);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.25);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Manrope',system-ui,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:600px;
+    margin:0 auto;
+    padding:28px 20px 80px;
+  }
+  .top{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:22px;
+  }
+  .top h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    letter-spacing:-0.01em;
+    margin:0 0 4px;
+    line-height:1.15;
+  }
+  .top .date{
+    color:var(--ink-soft);
+    font-size:14px;
+    text-transform:capitalize;
+  }
+  .ring-wrap{
+    position:relative;
+    width:64px;
+    height:64px;
+    flex:0 0 auto;
+  }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-bg{ fill:none; stroke:var(--line); stroke-width:6; }
+  .ring-fg{ fill:none; stroke:var(--accent); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s ease; }
+  .ring-label{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; font-variant-numeric:tabular-nums;
+    color:var(--ink);
+  }
+
+  nav.tabs{
+    display:flex;
+    gap:6px;
+    background:var(--paper-2);
+    border-radius:999px;
+    padding:4px;
+    margin-bottom:24px;
+  }
+  nav.tabs button{
+    flex:1;
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:13px;
+    font-weight:700;
+    padding:9px 8px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background .18s ease, color .18s ease;
+  }
+  nav.tabs button.active{
+    background:var(--card);
+    color:var(--ink);
+    box-shadow:var(--shadow);
+  }
+
+  section{ display:none; }
+  section.active{ display:block; }
+
+  /* --- Timeline (Hari Ini) --- */
+  .timeline{
+    position:relative;
+    padding-left:26px;
+  }
+  .timeline::before{
+    content:"";
+    position:absolute;
+    left:7px; top:6px; bottom:6px;
+    width:2px;
+    background:linear-gradient(to bottom,
+      #D6A985 0%, #E7C062 22%, #7FAFC4 45%, #C97E52 65%, #6E6796 82%, #38406B 100%);
+    opacity:0.55;
+    border-radius:2px;
+  }
+  .item{
+    position:relative;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:11px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .item:last-child{ border-bottom:none; }
+  .dot{
+    position:absolute;
+    left:-26px; top:16px;
+    width:9px; height:9px;
+    border-radius:50%;
+    background:var(--dotcolor, var(--accent));
+    box-shadow:0 0 0 4px var(--paper);
+  }
+  .item .time{
+    flex:0 0 82px;
+    font-variant-numeric:tabular-nums;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--ink-faint);
+    padding-top:2px;
+    line-height:1.35;
+  }
+  .item .body{ flex:1; min-width:0; }
+  .item .title{
+    font-size:15px;
+    font-weight:600;
+    line-height:1.35;
+  }
+  .item .cat{
+    display:inline-block;
+    margin-top:4px;
+    font-size:11px;
+    font-weight:700;
+    color:var(--dotcolor, var(--accent));
+  }
+  .item.done .title{
+    color:var(--ink-faint);
+    text-decoration:line-through;
+    text-decoration-color:var(--ink-faint);
+  }
+  .item.done .cat{ opacity:0.5; }
+
+  .check{
+    flex:0 0 auto;
+    width:26px; height:26px;
+    border-radius:50%;
+    border:2px solid var(--line);
+    background:var(--card);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    margin-top:2px;
+    transition:background .15s ease, border-color .15s ease, transform .1s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .check:active{ transform:scale(0.92); }
+  .check svg{ width:14px; height:14px; opacity:0; transition:opacity .15s ease; }
+  .item.done .check{ background:var(--accent); border-color:var(--accent); }
+  .item.done .check svg{ opacity:1; }
+  .check svg path{ stroke:var(--card); }
+
+  /* --- Jadwal minggu (read-only) --- */
+  .subtabs{ display:flex; gap:8px; margin-bottom:16px; }
+  .subtabs button{
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:12.5px;
+    font-weight:700;
+    padding:7px 12px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .subtabs button.active{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+  .ro-item{
+    display:flex; gap:12px; padding:9px 0; border-bottom:1px solid var(--line);
+  }
+  .ro-item:last-child{ border-bottom:none; }
+  .ro-item .time{
+    flex:0 0 82px; font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:700; color:var(--ink-faint);
+  }
+  .ro-item .title{ font-size:14.5px; font-weight:600; }
+  .ro-item .cat{ font-size:11px; font-weight:700; color:var(--dotcolor,var(--accent)); margin-top:2px; }
+
+  /* --- Riwayat --- */
+  .hist-card{
+    background:var(--card);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px 18px;
+    margin-bottom:14px;
+  }
+  .hist-top{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+  }
+  .hist-day{ font-family:'Fraunces',serif; font-weight:600; font-size:16px; }
+  .hist-date{ font-size:12px; color:var(--ink-faint); }
+  .hist-score{
+    font-size:13px; font-weight:700; font-variant-numeric:tabular-nums;
+  }
+  .hist-score.full{ color:var(--accent); }
+  .hist-score.partial{ color:var(--missed); }
+  .missed-list{
+    display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;
+  }
+  .missed-pill{
+    font-size:12px; font-weight:600;
+    background:var(--missed-soft); color:var(--missed);
+    padding:4px 10px; border-radius:999px;
+  }
+  .all-done-note{
+    font-size:13px; color:var(--ink-soft); margin-top:4px;
+  }
+  .empty{
+    text-align:center; padding:48px 20px; color:var(--ink-faint);
+  }
+  .empty .big{ font-family:'Fraunces',serif; font-size:19px; color:var(--ink-soft); margin-bottom:6px; }
+
+  .section-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:18px;
+    margin:0 0 14px;
+  }
+
+  footer.note{
+    text-align:center; font-size:12px; color:var(--ink-faint); margin-top:36px;
+  }
+
+  /* --- Intro: Aturan HP --- */
+  .intro-overlay{
+    position:fixed; inset:0;
+    background:var(--paper);
+    z-index:50;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 20px;
+    overflow-y:auto;
+  }
+  .intro-card{
+    max-width:460px;
+    width:100%;
+    background:var(--card);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    padding:30px 26px 26px;
+  }
+  .intro-emoji{
+    font-size:34px;
+    line-height:1;
+    margin-bottom:10px;
+  }
+  .intro-card h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:-0.01em;
+    margin:0 0 10px;
+    line-height:1.2;
+  }
+  .intro-card .intro-sub{
+    font-size:14px;
+    color:var(--ink-soft);
+    line-height:1.55;
+    margin-bottom:22px;
+  }
+  .intro-block{
+    border-radius:14px;
+    padding:14px 16px;
+    margin-bottom:12px;
+  }
+  .intro-block.no{
+    background:var(--missed-soft);
+  }
+  .intro-block.yes{
+    background:var(--accent-soft);
+  }
+  .intro-block-label{
+    font-size:11.5px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    margin-bottom:6px;
+  }
+  .intro-block.no .intro-block-label{ color:var(--missed); }
+  .intro-block.yes .intro-block-label{ color:var(--accent-ink); }
+  .intro-block-text{
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1.45;
+  }
+  .intro-options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:12px;
+  }
+  .intro-option{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:11px;
+    padding:9px 11px;
+    font-size:13.5px;
+    font-weight:600;
+  }
+  .intro-option .em{ font-size:16px; flex:0 0 auto; }
+  .intro-start-btn{
+    width:100%;
+    border:none;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    padding:14px;
+    border-radius:12px;
+    cursor:pointer;
+    margin-top:24px;
+    transition:opacity .15s ease, transform .1s ease;
+  }
+  .intro-start-btn:active{ transform:scale(0.98); }
+  .intro-hide-note{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-faint);
+    margin-top:12px;
+    cursor:pointer;
+    user-select:none;
+  }
+</style>
+</head>
+<body>
+
+<div class="intro-overlay" id="introOverlay">
+  <div class="intro-card">
+    <div class="intro-emoji">📱</div>
+    <h2>Aturan HP Lu</h2>
+    <div class="intro-sub">Ini gua masukin khusus karena lu sendiri sadar sosmed sering narik lu balik.</div>
+
+    <div class="intro-block no">
+      <div class="intro-block-label">🚫 Jangan</div>
+      <div class="intro-block-text">Bosan → buka sosmed → scroll.</div>
+    </div>
+
+    <div class="intro-block yes">
+      <div class="intro-block-label">✅ Ganti</div>
+      <div class="intro-block-text">Bosan → pilih aktivitas:</div>
+      <div class="intro-options">
+        <div class="intro-option"><span class="em">📖</span>Buku</div>
+        <div class="intro-option"><span class="em">🎨</span>Gambar</div>
+        <div class="intro-option"><span class="em">✍️</span>Nulis</div>
+        <div class="intro-option"><span class="em">🎧</span>Podcast</div>
+        <div class="intro-option"><span class="em">🌎</span>Berita penting</div>
+        <div class="intro-option"><span class="em">💻</span>Coding</div>
+        <div class="intro-option"><span class="em">🧠</span>Belajar</div>
+      </div>
+    </div>
+
+    <button class="intro-start-btn" id="introStartBtn" type="button">Oke, gas mulai</button>
+    <div class="intro-hide-note" id="introHideNote">Jangan tampilkan lagi hari ini</div>
+  </div>
+</div>
+
+<div class="wrap" id="mainWrap" style="display:none;">
+
+  <div class="top">
+    <div>
+      <h1>Jadwal Hidup</h1>
+      <div class="date" id="todayLabel">–</div>
+    </div>
+    <div class="ring-wrap">
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <circle class="ring-bg" cx="32" cy="32" r="27"></circle>
+        <circle class="ring-fg" id="ringFg" cx="32" cy="32" r="27" stroke-dasharray="169.6" stroke-dashoffset="169.6"></circle>
+      </svg>
+      <div class="ring-label" id="ringLabel">0/0</div>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="today">Hari Ini</button>
+    <button class="tab-btn" data-tab="week">Jadwal Minggu</button>
+    <button class="tab-btn" data-tab="history">Riwayat</button>
+  </nav>
+
+  <section id="tab-today" class="active">
+    <div class="timeline" id="todayList"></div>
+  </section>
+
+  <section id="tab-week">
+    <div class="subtabs" id="weekSubtabs">
+      <button class="wk-btn active" data-wk="weekday">Senin–Jumat</button>
+      <button class="wk-btn" data-wk="saturday">Sabtu</button>
+      <button class="wk-btn" data-wk="sunday">Minggu</button>
+    </div>
+    <div id="weekList"></div>
+  </section>
+
+  <section id="tab-history">
+    <div id="historyList"></div>
+  </section>
+
+  <footer class="note">Data tersimpan di browser ini saja.</footer>
+</div>
+
+<script>
+(function(){
+  const CATS = {
+    ibadah:'Ibadah', rutinitas:'Rutinitas', refleksi:'Refleksi', olahraga:'Olahraga',
+    sekolah:'Sekolah', belajar:'Belajar', istirahat:'Istirahat', hiburan:'Hiburan',
+    tidur:'Tidur', keluarga:'Keluarga', hobi:'Hobi'
+  };
+
+  const SCHEDULES = {
+    weekday: [
+      ['04.00','Bangun + minum air','rutinitas'],
+      ['04.00–04.30','Ibadah + doa','ibadah'],
+      ['04.30–05.00','Baca buku / refleksi','refleksi'],
+      ['05.00–05.20','Stretching & persiapan','olahraga'],
+      ['05.20–05.45','Mandi + siap-siap','rutinitas'],
+      ['05.45–06.10','Sarapan','rutinitas'],
+      ['06.10–06.30','Persiapan sekolah','rutinitas'],
+      ['06.30–07.00','Berangkat','rutinitas'],
+      ['07.00–16.30','Sekolah','sekolah'],
+      ['16.30–17.00','Pulang + istirahat','istirahat'],
+      ['17.00–17.30','Olahraga','olahraga'],
+      ['17.30–18.00','Mandi + bersih-bersih','rutinitas'],
+      ['18.00–18.30','Ibadah + makan','ibadah'],
+      ['18.30–19.00','Istirahat','istirahat'],
+      ['19.00–19.50','Belajar fokus','belajar'],
+      ['19.50–20.05','Istirahat','istirahat'],
+      ['20.05–20.45','Latihan soal / review','belajar'],
+      ['20.45–21.00','Persiapan besok','rutinitas'],
+      ['21.00','Tidur','tidur'],
+    ],
+    saturday: [
+      ['04.00','Bangun + minum','rutinitas'],
+      ['04.00–04.30','Ibadah','ibadah'],
+      ['04.30–05.00','Baca','refleksi'],
+      ['05.00–05.30','Stretching / persiapan','olahraga'],
+      ['05.30–06.00','Mandi','rutinitas'],
+      ['06.00–06.30','Sarapan','rutinitas'],
+      ['06.30–07.30','Olahraga','olahraga'],
+      ['07.30–08.00','Bersih-bersih','rutinitas'],
+      ['08.00–09.30','Belajar','belajar'],
+      ['09.30–10.00','Istirahat','istirahat'],
+      ['10.00–11.30','Coding / TKJ','belajar'],
+      ['11.30–13.00','Ibadah + makan + istirahat','ibadah'],
+      ['13.00–14.30','Gambar / desain','hobi'],
+      ['14.30–15.00','Istirahat','istirahat'],
+      ['15.00–16.00','Nulis / proyek pribadi','hobi'],
+      ['16.00–18.30','Ibadah + santai + keluarga','keluarga'],
+      ['18.30–19.30','Baca / podcast edukasi','refleksi'],
+      ['19.30–21.00','Hiburan bebas','hiburan'],
+      ['21.00','Tidur','tidur'],
+    ],
+    sunday: [
+      ['04.00','Bangun','rutinitas'],
+      ['04.00–04.30','Ibadah','ibadah'],
+      ['04.30–05.30','Baca / waktu tenang','refleksi'],
+      ['05.30–06.00','Mandi','rutinitas'],
+      ['06.00–07.00','Sarapan + keluarga','keluarga'],
+      ['07.00–08.00','Olahraga ringan','olahraga'],
+      ['08.00–09.00','Rapihin kamar/meja','rutinitas'],
+      ['09.00–10.00','Review ringan','belajar'],
+      ['10.00–12.00','Gambar / hobi','hobi'],
+      ['12.00–14.00','Ibadah + makan + istirahat','ibadah'],
+      ['14.00–16.00','Keluarga / aktivitas bebas','keluarga'],
+      ['16.00–18.30','Ibadah + santai','ibadah'],
+      ['18.30–19.15','Baca','refleksi'],
+      ['19.15–19.45','Rencanakan minggu depan','refleksi'],
+      ['19.45–20.30','Siapkan perlengkapan sekolah','rutinitas'],
+      ['20.30–21.00','Relax, tanpa scroll','istirahat'],
+      ['21.00','Tidur','tidur'],
+    ]
+  };
+
+  const WK_LABEL = { weekday:'Senin–Jumat', saturday:'Sabtu', sunday:'Minggu' };
+  const DAY_NAMES = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+  function pad(n){ return n<10 ? '0'+n : ''+n; }
+  function dateKey(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function templateForDate(d){
+    const dow = d.getDay();
+    if(dow===0) return 'sunday';
+    if(dow===6) return 'saturday';
+    return 'weekday';
+  }
+  function withId(key){
+    return SCHEDULES[key].map((it,i)=>({ id:key+'-'+i, time:it[0], title:it[1], cat:it[2] }));
+  }
+  function itemsForDate(d){ return withId(templateForDate(d)); }
+
+  function safeGet(key, fallback){
+    try{
+      const v = localStorage.getItem(key);
+      return v===null ? fallback : JSON.parse(v);
+    }catch(e){ return fallback; }
+  }
+  function safeSet(key, val){
+    try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  }
+
+  const today = new Date();
+  const todayKey = dateKey(today);
+
+  // --- Intro overlay ---
+  (function initIntro(){
+    const overlay = document.getElementById('introOverlay');
+    const mainWrap = document.getElementById('mainWrap');
+    const startBtn = document.getElementById('introStartBtn');
+    const hideNote = document.getElementById('introHideNote');
+    let skipToday = false;
+
+    function enterApp(){
+      overlay.style.display = 'none';
+      mainWrap.style.display = '';
+      if(skipToday) safeSet('introSeen', todayKey);
+    }
+
+    const seen = safeGet('introSeen', null);
+    if(seen === todayKey){
+      enterApp();
+      return;
+    }
+
+    startBtn.addEventListener('click', enterApp);
+    hideNote.addEventListener('click', ()=>{
+      skipToday = true;
+      enterApp();
+    });
+  })();
+
+  // --- Archive any elapsed days into history ---
+  (function rollover(){
+    let lastActive = safeGet('lastActive', null);
+    if(lastActive === null){
+      safeSet('lastActive', todayKey);
+      return;
+    }
+    if(lastActive === todayKey) return;
+
+    let history = safeGet('history', []);
+    let cursor = new Date(lastActive + 'T00:00:00');
+    let guard = 0;
+    while(dateKey(cursor) !== todayKey && guard < 60){
+      const key = dateKey(cursor);
+      const tmplKey = templateForDate(cursor);
+      const items = withId(tmplKey);
+      const checked = safeGet('checks-'+key, []);
+      const missedTitles = items.filter(it => checked.indexOf(it.id) === -1).map(it => it.title);
+      history.unshift({
+        date: key,
+        weekday: DAY_NAMES[cursor.getDay()],
+        total: items.length,
+        done: items.length - missedTitles.length,
+        missed: missedTitles
+      });
+      cursor.setDate(cursor.getDate()+1);
+      guard++;
+    }
+    safeSet('history', history);
+    safeSet('lastActive', todayKey);
+  })();
+
+  // --- Render "Hari Ini" ---
+  const todayItems = itemsForDate(today);
+  const todayListEl = document.getElementById('todayList');
+  let checkedToday = safeGet('checks-'+todayKey, []);
+
+  function periodColor(timeStr){
+    const h = parseInt(timeStr.split(/[–-]/)[0].split('.')[0], 10);
+    if(h < 6) return '#D6A985';
+    if(h < 11) return '#C99A3E';
+    if(h < 15) return '#3F84A0';
+    if(h < 18) return '#C4753F';
+    if(h < 21) return '#6E6796';
+    return '#38406B';
+  }
+
+  function renderToday(){
+    todayListEl.innerHTML = '';
+    todayItems.forEach(it=>{
+      const done = checkedToday.indexOf(it.id) !== -1;
+      const row = document.createElement('div');
+      row.className = 'item' + (done ? ' done' : '');
+      row.style.setProperty('--dotcolor', 'var(--cat-'+it.cat+')');
+      row.innerHTML = `
+        <span class="dot"></span>
+        <span class="time">${it.time}</span>
+        <span class="body">
+          <span class="title">${it.title}</span><br>
+          <span class="cat">${CATS[it.cat]}</span>
+        </span>
+        <button class="check" aria-label="Tandai selesai" type="button">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      `;
+      row.querySelector('.check').addEventListener('click', ()=>{
+        const idx = checkedToday.indexOf(it.id);
+        if(idx === -1) checkedToday.push(it.id); else checkedToday.splice(idx,1);
+        safeSet('checks-'+todayKey, checkedToday);
+        renderToday();
+        renderRing();
+      });
+      todayListEl.appendChild(row);
+    });
+  }
+
+  function renderRing(){
+    const total = todayItems.length;
+    const done = checkedToday.length;
+    const circumference = 2 * Math.PI * 27;
+    const offset = circumference * (1 - (total ? done/total : 0));
+    document.getElementById('ringFg').setAttribute('stroke-dasharray', circumference.toFixed(1));
+    document.getElementById('ringFg').setAttribute('stroke-dashoffset', offset.toFixed(1));
+    document.getElementById('ringLabel').textContent = done + '/' + total;
+  }
+
+  document.getElementById('todayLabel').textContent =
+    DAY_NAMES[today.getDay()] + ', ' + today.getDate() + ' ' + MONTH_NAMES[today.getMonth()] + ' ' + today.getFullYear();
+
+  renderToday();
+  renderRing();
+
+  // --- Render "Jadwal Minggu" (read-only) ---
+  const weekListEl = document.getElementById('weekList');
+  function renderWeek(key){
+    const items = withId(key);
+    weekListEl.innerHTML = '';
+    items.forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'ro-item';
+      row.style.setProperty('--dotcolor', 'var(--cat-'+it.cat+')');
+      row.innerHTML = `
+        <span class="time">${it.time}</span>
+        <span>
+          <span class="title">${it.title}</span><br>
+          <span class="cat">${CATS[it.cat]}</span>
+        </span>
+      `;
+      weekListEl.appendChild(row);
+    });
+  }
+  document.querySelectorAll('.wk-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.wk-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderWeek(btn.dataset.wk);
+    });
+  });
+  renderWeek('weekday');
+
+  // --- Render "Riwayat" ---
+  function renderHistory(){
+    const history = safeGet('history', []);
+    const el = document.getElementById('historyList');
+    if(history.length === 0){
+      el.innerHTML = `<div class="empty"><div class="big">Belum ada riwayat</div>Riwayat akan muncul otomatis begitu satu hari berlalu.</div>`;
+      return;
+    }
+    el.innerHTML = '<div class="section-title">Riwayat harian</div>';
+    history.forEach(rec=>{
+      const d = new Date(rec.date + 'T00:00:00');
+      const full = rec.missed.length === 0;
+      const card = document.createElement('div');
+      card.className = 'hist-card';
+      card.innerHTML = `
+        <div class="hist-top">
+          <div>
+            <div class="hist-day">${rec.weekday}</div>
+            <div class="hist-date">${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}</div>
+          </div>
+          <div class="hist-score ${full ? 'full':'partial'}">${rec.done}/${rec.total}</div>
+        </div>
+        ${ full
+          ? `<div class="all-done-note">Semua kegiatan tercentang.</div>`
+          : `<div class="missed-list">${rec.missed.map(m=>`<span class="missed-pill">${m}</span>`).join('')}</div>`
+        }
+      `;
+      el.appendChild(card);
+    });
+  }
+  renderHistory();
+
+  // --- Tabs ---
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+})();
+</script>
+</body>
+</html>
